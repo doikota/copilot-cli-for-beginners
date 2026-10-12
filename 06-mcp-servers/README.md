@@ -303,7 +303,7 @@ Copilot CLI includes a built-in `web_fetch` tool that can fetch content from any
 
 You can control which URLs are accessible via `~/.copilot/settings.json` (general Copilot settings), which is separate from `~/.copilot/mcp-config.json` (MCP server definitions).
 
-> ⚠️ **Settings file location**: As of v1.0.93, Copilot CLI reads user settings from `~/.copilot/settings.json`. The older `~/.copilot/config.json` file is no longer used for user settings — any keys placed there will be silently ignored.
+> ⚠️ **Settings file location**: Copilot CLI reads user settings from `~/.copilot/settings.json`. The older `~/.copilot/config.json` file is no longer used for user settings. Any keys placed there will be silently ignored.
 
 ```json
 {
