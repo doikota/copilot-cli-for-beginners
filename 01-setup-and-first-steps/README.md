@@ -573,7 +573,7 @@ You can control how Copilot displays tool activity and reasoning by setting the 
 copilot
 
 > /settings
-# Look for "transcriptView" option and set to "concise"
+# Look for "Transcript view" option and set to "concise"
 
 # OR set it directly in ~/.copilot/config.json:
 # "transcriptView": "concise"
