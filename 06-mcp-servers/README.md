@@ -223,7 +223,7 @@ The GitHub MCP server is built-in and requires no setup. Below are additional se
 
 > 💡 **The `.` path**: The `.` means "current directory". Copilot can access files relative to where you launched it. In a Codespace, this is your workspace root. You can also use an absolute path like `/workspaces/copilot-cli-for-beginners` if you prefer.
 
-Add this to your `~/.copilot/mcp-config.json`. MCP configuration changes take effect between turns — no need to restart Copilot.
+Add this to your `~/.copilot/mcp-config.json`. MCP configuration changes take effect between turns.
 
 </details>
 
@@ -252,7 +252,7 @@ Context7 gives Copilot access to up-to-date documentation for popular frameworks
 - ✅ **No account needed** 
 - ✅ **Your code stays local**
 
-Add this to your `~/.copilot/mcp-config.json`. MCP configuration changes take effect between turns — no need to restart Copilot.
+Add this to your `~/.copilot/mcp-config.json`. MCP configuration changes take effect between turns.
 
 </details>
 
@@ -759,7 +759,7 @@ copilot
 
 **Expected result**: Copilot lists `book_app.py`, `books.py`, and `utils.py` with their functions.
 
-> 💡 **Don't have filesystem MCP configured yet?** Create the config file from the [Complete Configuration](#complete-configuration-file) section above. MCP configuration changes take effect between turns — no need to restart Copilot.
+> 💡 **Don't have filesystem MCP configured yet?** Create the config file from the [Complete Configuration](#complete-configuration-file) section above. MCP configuration changes take effect between turns.
 
 ---
 
