@@ -518,7 +518,18 @@ copilot
 # Shows available models and lets you pick one. Examples: GPT-6 Sol, GPT-6 Luna, Claude Sonnet 5.5, Claude Opus 5.5.
 ```
 
-> 💡 **Session vs. persistent model**: The `/model` command changes the model for the **current session only**. When you start a new session, Copilot will use the default again. To set a permanent default model for all future sessions, use `/config model` instead.
+> 💡 **Session vs. persistent model**: The `/model` command changes the model for the **current session only**. When you start a new session, Copilot will use the default again. To set a permanent default model for all future sessions, use `/config model` inside a session, or the `copilot config` terminal command from your regular shell (no session needed):
+
+```bash
+# Set your default model from the terminal (outside a Copilot session)
+copilot config set model claude-sonnet-5.5
+
+# View all your saved settings
+copilot config list
+
+# Remove a setting and return to the default
+copilot config remove model
+```
 
 > 💡 **Tip**: Copilot CLI usage is measured in **GitHub AI Credits**. The number of credits used depends on the model you select and how many tokens the task consumes. More capable models may cost more, so use lighter models for routine tasks and save powerful reasoning models for complex work. Run `/usage` to see how many AI credits your current session has used.
 
