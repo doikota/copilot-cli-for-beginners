@@ -20,6 +20,7 @@ It can add, remove, and list books, mark them as read, and save a rating and rev
 ## Files
 
 * `book_app.py` - Main CLI entry point
+* `utils_app.py` - Interactive app using the helpers in `utils.py`
 * `books.py` - BookCollection class with data logic
 * `utils.py` - Helper functions for UI and input
 * `data.json` - Sample book data
@@ -42,6 +43,12 @@ python book_app.py find
 python book_app.py remove
 python book_app.py review
 python book_app.py help
+```
+
+To run the menu-based app that uses `utils.py`:
+
+```bash
+python utils_app.py
 ```
 
 When reviewing a book, use the up and down arrow keys to highlight a book, then

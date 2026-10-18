@@ -8,7 +8,18 @@ def print_menu():
 
 
 def get_user_choice() -> str:
-    return input("Choose an option (1-5): ").strip()
+    while True:
+        choice = input("Choose an option (1-5): ").strip()
+        try:
+            numeric_choice = int(choice)
+        except ValueError:
+            print("Invalid choice. Please choose an option from 1 to 5.")
+            continue
+
+        if 1 <= numeric_choice <= 5:
+            return str(numeric_choice)
+
+        print("Invalid choice. Please choose an option from 1 to 5.")
 
 
 def get_book_details():
