@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
@@ -25,6 +26,20 @@ def test_add_book():
     assert book.author == "George Orwell"
     assert book.year == 1949
     assert book.read is False
+
+def test_save_and_load_japanese_book_names() -> None:
+    collection = BookCollection()
+    collection.add_book("吾輩は猫である", "夏目漱石", 1905)
+
+    saved_json = Path(books.DATA_FILE).read_text(encoding="utf-8")
+    assert "吾輩は猫である" in saved_json
+    assert "夏目漱石" in saved_json
+    assert "\\u" not in saved_json
+
+    reloaded_collection = BookCollection()
+    book = reloaded_collection.find_book_by_title("吾輩は猫である")
+    assert book is not None
+    assert book.author == "夏目漱石"
 
 def test_mark_book_as_read():
     collection = BookCollection()

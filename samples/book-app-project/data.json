@@ -21,12 +21,24 @@
     "title": "To Kill a Mockingbird",
     "author": "Harper Lee",
     "year": 1960,
-    "read": false
+    "read": true
   },
   {
     "title": "Mysterious Book",
     "author": "",
     "year": 0,
+    "read": false
+  },
+  {
+    "title": "XEVIOUS ファードラウト サーガ",
+    "author": "遠藤 雅伸",
+    "year": 2005,
+    "read": false
+  },
+  {
+    "title": "a",
+    "author": "a",
+    "year": 2000,
     "read": false
   }
 ]

@@ -21,7 +21,7 @@ class BookCollection:
     def load_books(self):
         """Load books from the JSON file if it exists."""
         try:
-            with open(DATA_FILE, "r") as f:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 self.books = [Book(**b) for b in data]
         except FileNotFoundError:
@@ -32,8 +32,8 @@ class BookCollection:
 
     def save_books(self):
         """Save the current book collection to JSON."""
-        with open(DATA_FILE, "w") as f:
-            json.dump([asdict(b) for b in self.books], f, indent=2)
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump([asdict(b) for b in self.books], f, indent=2, ensure_ascii=False)
 
     def add_book(self, title: str, author: str, year: int) -> Book:
         book = Book(title=title, author=author, year=year)
