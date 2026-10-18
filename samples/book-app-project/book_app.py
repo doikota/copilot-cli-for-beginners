@@ -1,4 +1,6 @@
 import sys
+import questionary
+
 from books import Book, BookCollection, get_book_statistics
 
 
@@ -83,10 +85,31 @@ def handle_stat() -> None:
 def handle_review() -> None:
     print("\nRate and Review a Book\n")
 
-    title = input("Book title: ").strip()
-    book = collection.find_book_by_title(title)
+    books = collection.list_books()
+    if not books:
+        print("\nNo books found. Add a book before writing a review.\n")
+        return
+
+    book_by_id = {book.id: book for book in books}
+    selected_id: str | None = questionary.select(
+        "Select a book to review:",
+        choices=[
+            questionary.Choice(
+                f"{book.title} — {book.author} ({book.year})",
+                value=book.id,
+            )
+            for book in books
+        ],
+        style=questionary.Style([("highlighted", "reverse")]),
+        use_arrow_keys=True,
+    ).ask()
+    if selected_id is None:
+        print("\nReview cancelled.\n")
+        return
+
+    book = book_by_id.get(selected_id)
     if book is None:
-        print("\nBook not found.\n")
+        print("\nSelected book could not be found. Please try again.\n")
         return
 
     rating_input = input(
@@ -112,7 +135,7 @@ def handle_review() -> None:
         review = review_input
 
     try:
-        collection.set_rating_and_review(title, rating, review)
+        collection.set_rating_and_review_by_id(book.id, rating, review)
         print("\nRating and review saved.\n")
     except ValueError as error:
         print(f"\nError: {error}\n")

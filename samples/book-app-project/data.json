@@ -5,7 +5,8 @@
     "year": 1937,
     "read": false,
     "rating": null,
-    "review": null
+    "review": null,
+    "id": "01c4be39-69db-488b-9d7a-5220e0cf77ed"
   },
   {
     "title": "1984",
@@ -13,7 +14,8 @@
     "year": 1949,
     "read": true,
     "rating": null,
-    "review": null
+    "review": null,
+    "id": "0cb739bf-c1b3-45e8-b168-c4ca28c9eaa2"
   },
   {
     "title": "Dune",
@@ -21,7 +23,8 @@
     "year": 1965,
     "read": false,
     "rating": null,
-    "review": null
+    "review": null,
+    "id": "089d300b-b2d4-4b61-bc98-2892ab7b500d"
   },
   {
     "title": "To Kill a Mockingbird",
@@ -29,7 +32,8 @@
     "year": 1960,
     "read": true,
     "rating": null,
-    "review": null
+    "review": null,
+    "id": "fe7c59a2-014f-416d-820f-46dbacb26649"
   },
   {
     "title": "Mysterious Book",
@@ -37,7 +41,8 @@
     "year": 0,
     "read": false,
     "rating": null,
-    "review": null
+    "review": null,
+    "id": "f812fd4b-22c3-4ef4-af5b-e9338dfe1461"
   },
   {
     "title": "XEVIOUS ファードラウト サーガ",
@@ -45,7 +50,8 @@
     "year": 2005,
     "read": false,
     "rating": 4,
-    "review": "生物コンピューターガンプと人類との闘いを描いた傑作"
+    "review": "生物コンピューターガンプと人類との闘いを描いた傑作",
+    "id": "12af8995-7089-41f8-ab0f-1c638625b3fb"
   },
   {
     "title": "a",
@@ -53,6 +59,7 @@
     "year": 2000,
     "read": false,
     "rating": null,
-    "review": null
+    "review": "不明な本",
+    "id": "89bad6a7-7ea0-4a0b-8727-f2366c40a534"
   }
 ]

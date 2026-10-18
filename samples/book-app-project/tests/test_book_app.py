@@ -3,6 +3,7 @@ import sys
 from contextlib import redirect_stdout
 from io import StringIO
 
+import questionary
 import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -61,22 +62,28 @@ def test_review_command_updates_rating_and_review(
 ) -> None:
     book = Book("Dune", "Frank Herbert", 1965, rating=3, review="Old review")
     saved_values = []
-    monkeypatch.setattr(
-        book_app.collection, "find_book_by_title", lambda title: book
-    )
+    monkeypatch.setattr(book_app.collection, "list_books", lambda: [book])
     monkeypatch.setattr(
         book_app.collection,
-        "set_rating_and_review",
-        lambda title, rating, review: saved_values.append((rating, review)) or True,
+        "set_rating_and_review_by_id",
+        lambda book_id, rating, review: saved_values.append(
+            (book_id, rating, review)
+        )
+        or True,
     )
-    answers = iter(["Dune", "5", "A memorable adventure."])
+    monkeypatch.setattr(
+        book_app.questionary,
+        "select",
+        lambda *args, **kwargs: type("Prompt", (), {"ask": lambda self: book.id})(),
+    )
+    answers = iter(["5", "A memorable adventure."])
     monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
     output = StringIO()
 
     with redirect_stdout(output):
         book_app.handle_review()
 
-    assert saved_values == [(5, "A memorable adventure.")]
+    assert saved_values == [(book.id, 5, "A memorable adventure.")]
     assert "Rating and review saved." in output.getvalue()
 
 
@@ -85,52 +92,130 @@ def test_review_command_keeps_existing_values_when_prompts_are_blank(
 ) -> None:
     book = Book("Dune", "Frank Herbert", 1965, rating=3, review="Existing review")
     saved_values = []
-    monkeypatch.setattr(
-        book_app.collection, "find_book_by_title", lambda title: book
-    )
+    monkeypatch.setattr(book_app.collection, "list_books", lambda: [book])
     monkeypatch.setattr(
         book_app.collection,
-        "set_rating_and_review",
-        lambda title, rating, review: saved_values.append((rating, review)) or True,
+        "set_rating_and_review_by_id",
+        lambda book_id, rating, review: saved_values.append(
+            (book_id, rating, review)
+        )
+        or True,
     )
-    answers = iter(["Dune", "", ""])
+    monkeypatch.setattr(
+        book_app.questionary,
+        "select",
+        lambda *args, **kwargs: type("Prompt", (), {"ask": lambda self: book.id})(),
+    )
+    answers = iter(["", ""])
     monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
 
     book_app.handle_review()
 
-    assert saved_values == [(3, "Existing review")]
+    assert saved_values == [(book.id, 3, "Existing review")]
 
 
 def test_review_command_clears_rating_and_review(monkeypatch: pytest.MonkeyPatch) -> None:
     book = Book("Dune", "Frank Herbert", 1965, rating=3, review="Existing review")
     saved_values = []
-    monkeypatch.setattr(
-        book_app.collection, "find_book_by_title", lambda title: book
-    )
+    monkeypatch.setattr(book_app.collection, "list_books", lambda: [book])
     monkeypatch.setattr(
         book_app.collection,
-        "set_rating_and_review",
-        lambda title, rating, review: saved_values.append((rating, review)) or True,
+        "set_rating_and_review_by_id",
+        lambda book_id, rating, review: saved_values.append(
+            (book_id, rating, review)
+        )
+        or True,
     )
-    answers = iter(["Dune", "0", "!clear"])
+    monkeypatch.setattr(
+        book_app.questionary,
+        "select",
+        lambda *args, **kwargs: type("Prompt", (), {"ask": lambda self: book.id})(),
+    )
+    answers = iter(["0", "!clear"])
     monkeypatch.setattr("builtins.input", lambda prompt: next(answers))
 
     book_app.handle_review()
 
-    assert saved_values == [(None, None)]
+    assert saved_values == [(book.id, None, None)]
 
 
-def test_review_command_reports_unknown_book(
+def test_review_command_cancels_when_selection_is_cancelled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(book_app.collection, "find_book_by_title", lambda title: None)
-    monkeypatch.setattr("builtins.input", lambda prompt: "Unknown")
+    monkeypatch.setattr(
+        book_app.collection,
+        "list_books",
+        lambda: [Book("Dune", "Frank Herbert", 1965)],
+    )
+    monkeypatch.setattr(
+        book_app.questionary,
+        "select",
+        lambda *args, **kwargs: type("Prompt", (), {"ask": lambda self: None})(),
+    )
     output = StringIO()
 
     with redirect_stdout(output):
         book_app.handle_review()
 
-    assert "Book not found." in output.getvalue()
+    assert "Review cancelled." in output.getvalue()
+
+
+def test_review_command_handles_empty_collection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(book_app.collection, "list_books", lambda: [])
+    output = StringIO()
+
+    with redirect_stdout(output):
+        book_app.handle_review()
+
+    assert "Add a book before writing a review." in output.getvalue()
+
+
+def test_review_command_configures_highlighted_arrow_key_choices(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    books = [
+        Book("Dune", "Frank Herbert", 1965),
+        Book("Dune", "Another Author", 2020),
+    ]
+    selected_book = books[1]
+    saved_ids: list[str] = []
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(book_app.collection, "list_books", lambda: books)
+
+    class Prompt:
+        def ask(self) -> str:
+            return selected_book.id
+
+    def select_book(
+        message: str, choices: list[questionary.Choice], **kwargs: object
+    ) -> Prompt:
+        captured["message"] = message
+        captured["choices"] = choices
+        captured["style"] = kwargs["style"]
+        captured["use_arrow_keys"] = kwargs["use_arrow_keys"]
+        return Prompt()
+
+    monkeypatch.setattr(book_app.questionary, "select", select_book)
+    monkeypatch.setattr(
+        book_app.collection,
+        "set_rating_and_review_by_id",
+        lambda book_id, rating, review: saved_ids.append(book_id) or True,
+    )
+    monkeypatch.setattr("builtins.input", lambda prompt: "")
+
+    book_app.handle_review()
+
+    choices = captured["choices"]
+    assert isinstance(choices, list)
+    assert [(choice.title, choice.value) for choice in choices] == [
+        ("Dune — Frank Herbert (1965)", books[0].id),
+        ("Dune — Another Author (2020)", books[1].id),
+    ]
+    assert captured["style"].style_rules == [("highlighted", "reverse")]
+    assert captured["use_arrow_keys"] is True
+    assert saved_ids == [selected_book.id]
 
 
 def test_show_books_displays_rating_and_review() -> None:

@@ -29,6 +29,12 @@ It can add, remove, and list books, mark them as read, and save a rating and rev
 
 ## Running the App
 
+Install the project and its dependencies:
+
+```bash
+python -m pip install -e .
+```
+
 ```bash
 python book_app.py list
 python book_app.py add
@@ -38,8 +44,10 @@ python book_app.py review
 python book_app.py help
 ```
 
-When reviewing a book, enter a rating from 1 to 5. Leave a prompt blank to keep
-its current value; enter `0` to clear the rating or `!clear` to clear the review.
+When reviewing a book, use the up and down arrow keys to highlight a book, then
+press Enter to select it. Enter a rating from 1 to 5. Leave a prompt blank to
+keep its current value; enter `0` to clear the rating or `!clear` to clear the
+review.
 
 ## Running Tests
 

@@ -94,12 +94,15 @@ def test_legacy_book_data_loads_without_rating_or_review() -> None:
     assert book is not None
     assert book.rating is None
     assert book.review is None
+    assert book.id
 
 
 def test_set_rating_and_review_persists_values() -> None:
     collection = BookCollection()
     collection.add_book("Dune", "Frank Herbert", 1965)
 
+    book = collection.find_book_by_title("Dune")
+    assert book is not None
     assert collection.set_rating_and_review("Dune", 5, "A memorable adventure.")
 
     saved_collection = BookCollection()
@@ -107,6 +110,9 @@ def test_set_rating_and_review_persists_values() -> None:
     assert book is not None
     assert book.rating == 5
     assert book.review == "A memorable adventure."
+    original_book = collection.find_book_by_title("Dune")
+    assert original_book is not None
+    assert book.id == original_book.id
 
 
 @pytest.mark.parametrize("rating", [0, 6, -1, 1.5, True, "3"])
@@ -130,6 +136,27 @@ def test_set_rating_and_review_returns_false_for_unknown_title() -> None:
     collection = BookCollection()
 
     assert not collection.set_rating_and_review("Unknown", 4, "Review")
+
+
+def test_set_rating_and_review_by_id_returns_false_for_unknown_id() -> None:
+    collection = BookCollection()
+
+    assert not collection.set_rating_and_review_by_id(
+        "unknown-id", 4, "Review"
+    )
+
+
+def test_set_rating_and_review_updates_the_selected_duplicate_title() -> None:
+    collection = BookCollection()
+    first_book = collection.add_book("Dune", "Frank Herbert", 1965)
+    second_book = collection.add_book("Dune", "Another Author", 2020)
+
+    assert collection.set_rating_and_review_by_id(
+        second_book.id, 5, "Selected review."
+    )
+
+    assert first_book.review is None
+    assert second_book.review == "Selected review."
 
 
 def test_mark_book_as_read():

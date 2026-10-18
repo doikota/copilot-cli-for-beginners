@@ -1,7 +1,8 @@
 import json
-from dataclasses import dataclass, asdict, replace
+from dataclasses import dataclass, asdict, field, replace
 from pathlib import Path
 from typing import List, Optional
+from uuid import uuid4
 
 DATA_FILE = Path(__file__).resolve().parent / "data.json"
 
@@ -14,6 +15,7 @@ class Book:
     read: bool = False
     rating: Optional[int] = None
     review: Optional[str] = None
+    id: str = field(default_factory=lambda: str(uuid4()))
 
 
 def get_book_statistics(books: List[Book]) -> dict[str, int | Book | None]:
@@ -39,7 +41,12 @@ def _book_from_data(data: object, index: int) -> Book:
             f"Book at index {index} is missing: {', '.join(sorted(missing_fields))}."
         )
 
-    unexpected_fields = data.keys() - required_fields - {"read", "rating", "review"}
+    unexpected_fields = data.keys() - required_fields - {
+        "read",
+        "rating",
+        "review",
+        "id",
+    }
     if unexpected_fields:
         raise ValueError(
             f"Book at index {index} has unexpected fields: "
@@ -52,6 +59,7 @@ def _book_from_data(data: object, index: int) -> Book:
     read = data.get("read", False)
     rating = data.get("rating")
     review = data.get("review")
+    book_id = data.get("id")
     if not isinstance(title, str):
         raise ValueError(f"Book at index {index} has a non-string title.")
     if not isinstance(author, str):
@@ -66,6 +74,10 @@ def _book_from_data(data: object, index: int) -> Book:
         raise ValueError(f"Book at index {index} has a rating outside 1 to 5.")
     if review is not None and not isinstance(review, str):
         raise ValueError(f"Book at index {index} has a non-string review.")
+    if "id" in data and (
+        not isinstance(book_id, str) or not book_id.strip()
+    ):
+        raise ValueError(f"Book at index {index} has an invalid id.")
 
     return Book(
         title=title,
@@ -74,6 +86,7 @@ def _book_from_data(data: object, index: int) -> Book:
         read=read,
         rating=rating,
         review=review,
+        id=book_id if isinstance(book_id, str) else str(uuid4()),
     )
 
 
@@ -118,6 +131,12 @@ class BookCollection:
                 return book
         return None
 
+    def find_book_by_id(self, book_id: str) -> Optional[Book]:
+        for book in self.books:
+            if book.id == book_id:
+                return book
+        return None
+
     def mark_as_read(self, title: str) -> bool:
         book = self.find_book_by_title(title)
         if book:
@@ -126,8 +145,8 @@ class BookCollection:
             return True
         return False
 
-    def set_rating_and_review(
-        self, title: str, rating: Optional[int], review: Optional[str]
+    def _set_rating_and_review(
+        self, book: Optional[Book], rating: Optional[int], review: Optional[str]
     ) -> bool:
         if rating is not None and (
             not isinstance(rating, int)
@@ -138,7 +157,6 @@ class BookCollection:
         if review is not None and not isinstance(review, str):
             raise ValueError("Review must be a string or None.")
 
-        book = self.find_book_by_title(title)
         if book is None:
             return False
 
@@ -146,6 +164,20 @@ class BookCollection:
         book.review = review
         self.save_books()
         return True
+
+    def set_rating_and_review(
+        self, title: str, rating: Optional[int], review: Optional[str]
+    ) -> bool:
+        return self._set_rating_and_review(
+            self.find_book_by_title(title), rating, review
+        )
+
+    def set_rating_and_review_by_id(
+        self, book_id: str, rating: Optional[int], review: Optional[str]
+    ) -> bool:
+        return self._set_rating_and_review(
+            self.find_book_by_id(book_id), rating, review
+        )
 
     def remove_book(self, title: str) -> bool:
         """Remove a book by title."""
