@@ -3,13 +3,15 @@
 *(This README is intentionally rough so you can improve it with GitHub Copilot CLI)*
 
 A Python app for managing books you have or want to read.
-It can add, remove, and list books. Also mark them as read.
+It can add, remove, and list books, mark them as read, and save a rating and review.
 
 ---
 
 ## Current Features
 
 * Reads books from a JSON file (our database)
+* Stores an optional 1-to-5 rating and one review for each book
+* Use the `review` command to add or update a rating and review
 * Input checking is weak in some areas
 * Some tests exist but probably not enough
 
@@ -32,8 +34,12 @@ python book_app.py list
 python book_app.py add
 python book_app.py find
 python book_app.py remove
+python book_app.py review
 python book_app.py help
 ```
+
+When reviewing a book, enter a rating from 1 to 5. Leave a prompt blank to keep
+its current value; enter `0` to clear the rating or `!clear` to clear the review.
 
 ## Running Tests
 

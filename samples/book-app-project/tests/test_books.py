@@ -67,6 +67,8 @@ def test_save_and_load_japanese_book_names() -> None:
         '[{"title": "Missing year", "author": "Author"}]',
         '[{"title": "Bad year", "author": "Author", "year": true}]',
         '[{"title": "Bad status", "author": "Author", "year": 2000, "read": "yes"}]',
+        '[{"title": "Bad rating", "author": "Author", "year": 2000, "rating": 6}]',
+        '[{"title": "Bad review", "author": "Author", "year": 2000, "review": 5}]',
     ],
 )
 def test_load_invalid_book_data_raises_and_preserves_file(
@@ -78,6 +80,56 @@ def test_load_invalid_book_data_raises_and_preserves_file(
         BookCollection()
 
     assert Path(books.DATA_FILE).read_text(encoding="utf-8") == invalid_data
+
+
+def test_legacy_book_data_loads_without_rating_or_review() -> None:
+    Path(books.DATA_FILE).write_text(
+        '[{"title": "1984", "author": "George Orwell", "year": 1949}]',
+        encoding="utf-8",
+    )
+
+    collection = BookCollection()
+    book = collection.find_book_by_title("1984")
+
+    assert book is not None
+    assert book.rating is None
+    assert book.review is None
+
+
+def test_set_rating_and_review_persists_values() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    assert collection.set_rating_and_review("Dune", 5, "A memorable adventure.")
+
+    saved_collection = BookCollection()
+    book = saved_collection.find_book_by_title("Dune")
+    assert book is not None
+    assert book.rating == 5
+    assert book.review == "A memorable adventure."
+
+
+@pytest.mark.parametrize("rating", [0, 6, -1, 1.5, True, "3"])
+def test_set_rating_and_review_rejects_invalid_ratings(rating: object) -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    with pytest.raises(ValueError, match="Rating must be an integer"):
+        collection.set_rating_and_review("Dune", rating, None)  # type: ignore[arg-type]
+
+
+def test_set_rating_and_review_rejects_non_string_review() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    with pytest.raises(ValueError, match="Review must be a string"):
+        collection.set_rating_and_review("Dune", None, 123)  # type: ignore[arg-type]
+
+
+def test_set_rating_and_review_returns_false_for_unknown_title() -> None:
+    collection = BookCollection()
+
+    assert not collection.set_rating_and_review("Unknown", 4, "Review")
 
 
 def test_mark_book_as_read():

@@ -3,42 +3,56 @@
     "title": "The Hobbit",
     "author": "J.R.R. Tolkien",
     "year": 1937,
-    "read": false
+    "read": false,
+    "rating": null,
+    "review": null
   },
   {
     "title": "1984",
     "author": "George Orwell",
     "year": 1949,
-    "read": true
+    "read": true,
+    "rating": null,
+    "review": null
   },
   {
     "title": "Dune",
     "author": "Frank Herbert",
     "year": 1965,
-    "read": false
+    "read": false,
+    "rating": null,
+    "review": null
   },
   {
     "title": "To Kill a Mockingbird",
     "author": "Harper Lee",
     "year": 1960,
-    "read": true
+    "read": true,
+    "rating": null,
+    "review": null
   },
   {
     "title": "Mysterious Book",
     "author": "",
     "year": 0,
-    "read": false
+    "read": false,
+    "rating": null,
+    "review": null
   },
   {
     "title": "XEVIOUS ファードラウト サーガ",
     "author": "遠藤 雅伸",
     "year": 2005,
-    "read": false
+    "read": false,
+    "rating": 4,
+    "review": "生物コンピューターガンプと人類との闘いを描いた傑作"
   },
   {
     "title": "a",
     "author": "a",
     "year": 2000,
-    "read": false
+    "read": false,
+    "rating": null,
+    "review": null
   }
 ]

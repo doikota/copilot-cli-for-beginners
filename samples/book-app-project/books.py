@@ -12,6 +12,8 @@ class Book:
     author: str
     year: int
     read: bool = False
+    rating: Optional[int] = None
+    review: Optional[str] = None
 
 
 def get_book_statistics(books: List[Book]) -> dict[str, int | Book | None]:
@@ -37,7 +39,7 @@ def _book_from_data(data: object, index: int) -> Book:
             f"Book at index {index} is missing: {', '.join(sorted(missing_fields))}."
         )
 
-    unexpected_fields = data.keys() - required_fields - {"read"}
+    unexpected_fields = data.keys() - required_fields - {"read", "rating", "review"}
     if unexpected_fields:
         raise ValueError(
             f"Book at index {index} has unexpected fields: "
@@ -48,6 +50,8 @@ def _book_from_data(data: object, index: int) -> Book:
     author = data["author"]
     year = data["year"]
     read = data.get("read", False)
+    rating = data.get("rating")
+    review = data.get("review")
     if not isinstance(title, str):
         raise ValueError(f"Book at index {index} has a non-string title.")
     if not isinstance(author, str):
@@ -56,8 +60,21 @@ def _book_from_data(data: object, index: int) -> Book:
         raise ValueError(f"Book at index {index} has a non-integer year.")
     if not isinstance(read, bool):
         raise ValueError(f"Book at index {index} has a non-boolean read status.")
+    if rating is not None and (
+        not isinstance(rating, int) or isinstance(rating, bool) or not 1 <= rating <= 5
+    ):
+        raise ValueError(f"Book at index {index} has a rating outside 1 to 5.")
+    if review is not None and not isinstance(review, str):
+        raise ValueError(f"Book at index {index} has a non-string review.")
 
-    return Book(title=title, author=author, year=year, read=read)
+    return Book(
+        title=title,
+        author=author,
+        year=year,
+        read=read,
+        rating=rating,
+        review=review,
+    )
 
 
 class BookCollection:
@@ -108,6 +125,27 @@ class BookCollection:
             self.save_books()
             return True
         return False
+
+    def set_rating_and_review(
+        self, title: str, rating: Optional[int], review: Optional[str]
+    ) -> bool:
+        if rating is not None and (
+            not isinstance(rating, int)
+            or isinstance(rating, bool)
+            or not 1 <= rating <= 5
+        ):
+            raise ValueError("Rating must be an integer from 1 to 5 or None.")
+        if review is not None and not isinstance(review, str):
+            raise ValueError("Review must be a string or None.")
+
+        book = self.find_book_by_title(title)
+        if book is None:
+            return False
+
+        book.rating = rating
+        book.review = review
+        self.save_books()
+        return True
 
     def remove_book(self, title: str) -> bool:
         """Remove a book by title."""

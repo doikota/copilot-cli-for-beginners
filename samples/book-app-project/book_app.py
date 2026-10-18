@@ -1,12 +1,12 @@
 import sys
-from books import BookCollection, get_book_statistics
+from books import Book, BookCollection, get_book_statistics
 
 
 # Global collection instance
 collection = BookCollection()
 
 
-def show_books(books):
+def show_books(books: list[Book]) -> None:
     """Display books in a user-friendly format."""
     if not books:
         print("No books found.")
@@ -17,6 +17,10 @@ def show_books(books):
     for index, book in enumerate(books, start=1):
         status = "✓" if book.read else " "
         print(f"{index}. [{status}] {book.title} by {book.author} ({book.year})")
+        rating = f"{book.rating}/5" if book.rating is not None else "Not rated"
+        review = book.review if book.review else "No review"
+        print(f"   Rating: {rating}")
+        print(f"   Review: {review}")
 
     print()
 
@@ -76,7 +80,45 @@ def handle_stat() -> None:
     print()
 
 
-def show_help():
+def handle_review() -> None:
+    print("\nRate and Review a Book\n")
+
+    title = input("Book title: ").strip()
+    book = collection.find_book_by_title(title)
+    if book is None:
+        print("\nBook not found.\n")
+        return
+
+    rating_input = input(
+        "Rating (1-5, blank to keep, 0 to clear): "
+    ).strip()
+    if rating_input == "":
+        rating = book.rating
+    elif rating_input == "0":
+        rating = None
+    else:
+        try:
+            rating = int(rating_input)
+        except ValueError:
+            print("\nError: rating must be an integer from 1 to 5.\n")
+            return
+
+    review_input = input("Review (blank to keep, !clear to clear): ").strip()
+    if review_input == "":
+        review = book.review
+    elif review_input == "!clear":
+        review = None
+    else:
+        review = review_input
+
+    try:
+        collection.set_rating_and_review(title, rating, review)
+        print("\nRating and review saved.\n")
+    except ValueError as error:
+        print(f"\nError: {error}\n")
+
+
+def show_help() -> None:
     print("""
 Book Collection Helper
 
@@ -86,11 +128,12 @@ Commands:
   remove   - Remove a book by title
   find     - Find books by author
   stat     - Show collection statistics
+  review   - Add or update a book rating and review
   help     - Show this help message
 """)
 
 
-def main():
+def main() -> None:
     if len(sys.argv) < 2:
         show_help()
         return
@@ -107,6 +150,8 @@ def main():
         handle_find()
     elif command == "stat":
         handle_stat()
+    elif command == "review":
+        handle_review()
     elif command == "help":
         show_help()
     else:
