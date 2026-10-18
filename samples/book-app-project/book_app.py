@@ -1,5 +1,5 @@
 import sys
-from books import BookCollection
+from books import BookCollection, get_book_statistics
 
 
 # Global collection instance
@@ -21,12 +21,12 @@ def show_books(books):
     print()
 
 
-def handle_list():
+def handle_list() -> None:
     books = collection.list_books()
     show_books(books)
 
 
-def handle_add():
+def handle_add() -> None:
     print("\nAdd a New Book\n")
 
     title = input("Title: ").strip()
@@ -41,7 +41,7 @@ def handle_add():
         print(f"\nError: {e}\n")
 
 
-def handle_remove():
+def handle_remove() -> None:
     print("\nRemove a Book\n")
 
     title = input("Enter the title of the book to remove: ").strip()
@@ -50,13 +50,30 @@ def handle_remove():
     print("\nBook removed if it existed.\n")
 
 
-def handle_find():
+def handle_find() -> None:
     print("\nFind Books by Author\n")
 
     author = input("Author name: ").strip()
     books = collection.find_by_author(author)
 
     show_books(books)
+
+
+def handle_stat() -> None:
+    statistics = get_book_statistics(collection.list_books())
+    print("\nBook Collection Statistics\n")
+    print(f"Total books: {statistics['total']}")
+    print(f"Read: {statistics['read']}")
+    print(f"Unread: {statistics['unread']}")
+
+    for label, key in (("Oldest", "oldest_book"), ("Newest", "newest_book")):
+        book = statistics[key]
+        if book is None:
+            print(f"{label} book: None")
+        else:
+            print(f"{label} book: {book.title} by {book.author} ({book.year})")
+
+    print()
 
 
 def show_help():
@@ -68,6 +85,7 @@ Commands:
   add      - Add a new book
   remove   - Remove a book by title
   find     - Find books by author
+  stat     - Show collection statistics
   help     - Show this help message
 """)
 
@@ -87,6 +105,8 @@ def main():
         handle_remove()
     elif command == "find":
         handle_find()
+    elif command == "stat":
+        handle_stat()
     elif command == "help":
         show_help()
     else:

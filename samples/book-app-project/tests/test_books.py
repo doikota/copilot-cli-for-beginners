@@ -27,6 +27,23 @@ def test_add_book():
     assert book.year == 1949
     assert book.read is False
 
+
+def test_list_books_returns_independent_copies() -> None:
+    collection = BookCollection()
+    collection.add_book("1984", "George Orwell", 1949)
+
+    listed_books = collection.list_books()
+    listed_books[0].title = "Changed title"
+    listed_books[0].read = True
+    listed_books.append(books.Book("Dune", "Frank Herbert", 1965))
+
+    stored_book = collection.find_book_by_title("1984")
+    assert stored_book is not None
+    assert stored_book.title == "1984"
+    assert stored_book.read is False
+    assert len(collection.list_books()) == 1
+
+
 def test_save_and_load_japanese_book_names() -> None:
     collection = BookCollection()
     collection.add_book("吾輩は猫である", "夏目漱石", 1905)
@@ -40,6 +57,28 @@ def test_save_and_load_japanese_book_names() -> None:
     book = reloaded_collection.find_book_by_title("吾輩は猫である")
     assert book is not None
     assert book.author == "夏目漱石"
+
+
+@pytest.mark.parametrize(
+    "invalid_data",
+    [
+        '{"title": "not a list"}',
+        '[null]',
+        '[{"title": "Missing year", "author": "Author"}]',
+        '[{"title": "Bad year", "author": "Author", "year": true}]',
+        '[{"title": "Bad status", "author": "Author", "year": 2000, "read": "yes"}]',
+    ],
+)
+def test_load_invalid_book_data_raises_and_preserves_file(
+    invalid_data: str,
+) -> None:
+    Path(books.DATA_FILE).write_text(invalid_data, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Cannot load books from data.json"):
+        BookCollection()
+
+    assert Path(books.DATA_FILE).read_text(encoding="utf-8") == invalid_data
+
 
 def test_mark_book_as_read():
     collection = BookCollection()
