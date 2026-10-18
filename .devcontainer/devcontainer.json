@@ -1,6 +1,9 @@
 {
   "name": "GitHub Copilot CLI for Beginners",
-  "image": "mcr.microsoft.com/devcontainers/python:2-3.13-bullseye",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/node:1": {}
