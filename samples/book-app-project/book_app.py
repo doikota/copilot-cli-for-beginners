@@ -1,11 +1,8 @@
 import sys
+
 import questionary
 
 from books import Book, BookCollection, get_book_statistics
-
-
-# Global collection instance
-collection = BookCollection()
 
 
 def show_books(books: list[Book]) -> None:
@@ -27,12 +24,12 @@ def show_books(books: list[Book]) -> None:
     print()
 
 
-def handle_list() -> None:
+def handle_list(collection: BookCollection) -> None:
     books = collection.list_books()
     show_books(books)
 
 
-def handle_add() -> None:
+def handle_add(collection: BookCollection) -> None:
     print("\nAdd a New Book\n")
 
     title = input("Title: ").strip()
@@ -47,7 +44,7 @@ def handle_add() -> None:
         print(f"\nError: {e}\n")
 
 
-def handle_remove() -> None:
+def handle_remove(collection: BookCollection) -> None:
     print("\nRemove a Book\n")
 
     title = input("Enter the title of the book to remove: ").strip()
@@ -56,7 +53,7 @@ def handle_remove() -> None:
     print("\nBook removed if it existed.\n")
 
 
-def handle_find() -> None:
+def handle_find(collection: BookCollection) -> None:
     print("\nFind Books by Author\n")
 
     author = input("Author name: ").strip()
@@ -65,7 +62,7 @@ def handle_find() -> None:
     show_books(books)
 
 
-def handle_stat() -> None:
+def handle_stat(collection: BookCollection) -> None:
     statistics = get_book_statistics(collection.list_books())
     print("\nBook Collection Statistics\n")
     print(f"Total books: {statistics['total']}")
@@ -82,7 +79,7 @@ def handle_stat() -> None:
     print()
 
 
-def handle_review() -> None:
+def handle_review(collection: BookCollection) -> None:
     print("\nRate and Review a Book\n")
 
     books = collection.list_books()
@@ -156,31 +153,40 @@ Commands:
 """)
 
 
-def main() -> None:
+def main() -> int:
     if len(sys.argv) < 2:
         show_help()
-        return
+        return 0
 
     command = sys.argv[1].lower()
 
-    if command == "list":
-        handle_list()
-    elif command == "add":
-        handle_add()
-    elif command == "remove":
-        handle_remove()
-    elif command == "find":
-        handle_find()
-    elif command == "stat":
-        handle_stat()
-    elif command == "review":
-        handle_review()
-    elif command == "help":
+    if command == "help":
         show_help()
-    else:
+        return 0
+
+    handlers = {
+        "list": handle_list,
+        "add": handle_add,
+        "remove": handle_remove,
+        "find": handle_find,
+        "stat": handle_stat,
+        "review": handle_review,
+    }
+    handler = handlers.get(command)
+    if handler is None:
         print("Unknown command.\n")
         show_help()
+        return 0
+
+    try:
+        collection = BookCollection()
+    except (OSError, ValueError) as error:
+        print(f"Error: Could not load book collection: {error}", file=sys.stderr)
+        return 1
+
+    handler(collection)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
