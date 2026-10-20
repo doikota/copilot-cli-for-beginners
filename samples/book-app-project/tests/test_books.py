@@ -1,19 +1,49 @@
-import sys
 import os
+import sys
 from pathlib import Path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import books
-from books import BookCollection
+from books import Book, BookCollection, get_book_statistics
 
 
 @pytest.fixture(autouse=True)
-def use_temp_data_file(tmp_path, monkeypatch):
+def use_temp_data_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Use a temporary data file for each test."""
     temp_file = tmp_path / "data.json"
-    temp_file.write_text("[]")
+    temp_file.write_text("[]", encoding="utf-8")
     monkeypatch.setattr(books, "DATA_FILE", str(temp_file))
+
+
+def test_get_book_statistics() -> None:
+    oldest_book = Book("Book A", "Author A", 1900, read=True)
+    middle_book = Book("Book B", "Author B", 1950)
+    newest_book = Book("Book C", "Author C", 2000, read=True)
+
+    result = get_book_statistics([middle_book, oldest_book, newest_book])
+
+    assert result == {
+        "total": 3,
+        "read": 2,
+        "unread": 1,
+        "oldest_book": oldest_book,
+        "newest_book": newest_book,
+    }
+
+
+def test_get_book_statistics_empty_list() -> None:
+    result = get_book_statistics([])
+
+    assert result == {
+        "total": 0,
+        "read": 0,
+        "unread": 0,
+        "oldest_book": None,
+        "newest_book": None,
+    }
 
 
 def test_add_book():
@@ -68,7 +98,12 @@ def test_save_and_load_japanese_book_names() -> None:
         '[{"title": "Bad year", "author": "Author", "year": true}]',
         '[{"title": "Bad status", "author": "Author", "year": 2000, "read": "yes"}]',
         '[{"title": "Bad rating", "author": "Author", "year": 2000, "rating": 6}]',
+        '[{"title": 1, "author": "Author", "year": 2000}]',
+        '[{"title": "Book", "author": 1, "year": 2000}]',
+        '[{"title": "Book", "author": "Author", "year": 2000, "rating": true}]',
         '[{"title": "Bad review", "author": "Author", "year": 2000, "review": 5}]',
+        '[{"title": "Book", "author": "Author", "year": 2000, "id": " "}]',
+        '[{"title": "Book", "author": "Author", "year": 2000, "unknown": true}]',
     ],
 )
 def test_load_invalid_book_data_raises_and_preserves_file(
@@ -95,6 +130,21 @@ def test_legacy_book_data_loads_without_rating_or_review() -> None:
     assert book.rating is None
     assert book.review is None
     assert book.id
+
+
+def test_load_books_uses_empty_collection_when_data_file_is_missing() -> None:
+    Path(books.DATA_FILE).unlink()
+
+    collection = BookCollection()
+
+    assert collection.list_books() == []
+
+
+def test_load_books_rejects_malformed_json() -> None:
+    Path(books.DATA_FILE).write_text("{invalid json", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Cannot load books from data.json"):
+        BookCollection()
 
 
 def test_set_rating_and_review_persists_values() -> None:
@@ -184,3 +234,50 @@ def test_remove_book_invalid():
     collection = BookCollection()
     result = collection.remove_book("Nonexistent Book")
     assert result is False
+
+
+def test_mark_as_read_matches_title_without_case_sensitivity() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    assert collection.mark_as_read("dUnE") is True
+
+    reloaded_collection = BookCollection()
+    book = reloaded_collection.find_book_by_title("Dune")
+    assert book is not None
+    assert book.read is True
+
+
+@pytest.mark.parametrize("author_query", ["frank herbert", "FRANK HERBERT"])
+def test_find_by_author_matches_without_case_sensitivity(
+    author_query: str,
+) -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    result = collection.find_by_author(author_query)
+
+    assert [book.title for book in result] == ["Dune"]
+
+
+def test_find_by_author_returns_empty_list_for_no_match() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    assert collection.find_by_author("Ursula Le Guin") == []
+
+
+def test_find_by_author_returns_empty_list_for_empty_collection() -> None:
+    collection = BookCollection()
+
+    assert collection.find_by_author("") == []
+
+
+def test_remove_book_matches_title_without_case_sensitivity_and_persists() -> None:
+    collection = BookCollection()
+    collection.add_book("The Hobbit", "J.R.R. Tolkien", 1937)
+
+    assert collection.remove_book("the hobbit") is True
+
+    reloaded_collection = BookCollection()
+    assert reloaded_collection.list_books() == []
