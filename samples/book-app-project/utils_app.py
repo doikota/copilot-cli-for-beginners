@@ -5,12 +5,17 @@ from utils import get_book_details, get_user_choice, print_books, print_menu
 
 
 def add_book(collection: BookCollection) -> None:
-    title, author, year = get_book_details()
-    if not title or not author:
-        print("Title and author are required.")
+    try:
+        title, author, year = get_book_details()
+        if not title or not author:
+            print("Title and author are required.")
+            return
+
+        collection.add_book(title, author, year)
+    except ValueError as error:
+        print(f"Invalid book details: {error}")
         return
 
-    collection.add_book(title, author, year)
     print("Book added successfully.")
 
 

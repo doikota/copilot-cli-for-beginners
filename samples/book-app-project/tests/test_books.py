@@ -1,5 +1,6 @@
 import os
 import sys
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -58,6 +59,42 @@ def test_add_book():
     assert book.read is False
 
 
+@pytest.mark.parametrize("year", [1, date.today().year])
+def test_add_book_accepts_publication_year_boundaries(year: int) -> None:
+    collection = BookCollection()
+
+    book = collection.add_book("Book", "Author", year)
+
+    assert book.year == year
+
+
+@pytest.mark.parametrize(
+    "year",
+    [0, -1, date.today().year + 1, 1.5, True, "2000", None],
+)
+def test_add_book_rejects_invalid_publication_year(year: object) -> None:
+    collection = BookCollection()
+
+    with pytest.raises(ValueError, match="Publication year must be an integer"):
+        collection.add_book("Book", "Author", year)  # type: ignore[arg-type]
+
+    assert collection.list_books() == []
+
+
+@pytest.mark.parametrize("year", [0, -1, date.today().year + 1])
+def test_load_books_rejects_publication_year_outside_valid_range(
+    year: int,
+) -> None:
+    collection = BookCollection()
+    Path(books.DATA_FILE).write_text(
+        f'[{{"title": "Book", "author": "Author", "year": {year}}}]',
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Book at index 0 has an invalid year"):
+        collection.load_books()
+
+
 def test_list_books_returns_independent_copies() -> None:
     collection = BookCollection()
     collection.add_book("1984", "George Orwell", 1949)
@@ -96,13 +133,40 @@ def test_save_and_load_japanese_book_names() -> None:
         '[null]',
         '[{"title": "Missing year", "author": "Author"}]',
         '[{"title": "Bad year", "author": "Author", "year": true}]',
+        '[{"title": "String year", "author": "Author", "year": "2000"}]',
+        '[{"title": "Year zero", "author": "Author", "year": 0}]',
+        '[{"title": "Negative year", "author": "Author", "year": -1}]',
+        (
+            f'[{{"title": "Future year", "author": "Author", '
+            f'"year": {date.today().year + 1}}}]'
+        ),
         '[{"title": "Bad status", "author": "Author", "year": 2000, "read": "yes"}]',
+        (
+            '[{"title": "Null status", "author": "Author", "year": 2000, '
+            '"read": null}]'
+        ),
         '[{"title": "Bad rating", "author": "Author", "year": 2000, "rating": 6}]',
+        '[{"title": "Zero rating", "author": "Author", "year": 2000, "rating": 0}]',
+        (
+            '[{"title": "Negative rating", "author": "Author", "year": 2000, '
+            '"rating": -1}]'
+        ),
+        (
+            '[{"title": "Fractional rating", "author": "Author", "year": 2000, '
+            '"rating": 1.5}]'
+        ),
+        (
+            '[{"title": "String rating", "author": "Author", "year": 2000, '
+            '"rating": "3"}]'
+        ),
+        '[{"author": "Author", "year": 2000}]',
+        '[{"title": "Book", "year": 2000}]',
         '[{"title": 1, "author": "Author", "year": 2000}]',
         '[{"title": "Book", "author": 1, "year": 2000}]',
         '[{"title": "Book", "author": "Author", "year": 2000, "rating": true}]',
         '[{"title": "Bad review", "author": "Author", "year": 2000, "review": 5}]',
         '[{"title": "Book", "author": "Author", "year": 2000, "id": " "}]',
+        '[{"title": "Book", "author": "Author", "year": 2000, "id": 1}]',
         '[{"title": "Book", "author": "Author", "year": 2000, "unknown": true}]',
     ],
 )
@@ -127,9 +191,36 @@ def test_legacy_book_data_loads_without_rating_or_review() -> None:
     book = collection.find_book_by_title("1984")
 
     assert book is not None
+    assert book.read is False
     assert book.rating is None
     assert book.review is None
     assert book.id
+
+
+def test_load_books_preserves_optional_fields_and_id() -> None:
+    Path(books.DATA_FILE).write_text(
+        '[{"title": "Dune", "author": "Frank Herbert", "year": 1965, '
+        '"read": true, "rating": 5, "review": "Excellent.", '
+        '"id": "dune-book-id"}]',
+        encoding="utf-8",
+    )
+
+    collection = BookCollection()
+    book = collection.find_book_by_id("dune-book-id")
+
+    assert book is not None
+    assert (book.read, book.rating, book.review) == (True, 5, "Excellent.")
+
+    collection.save_books()
+    reloaded_collection = BookCollection()
+    reloaded_book = reloaded_collection.find_book_by_id("dune-book-id")
+
+    assert reloaded_book is not None
+    assert (reloaded_book.read, reloaded_book.rating, reloaded_book.review) == (
+        True,
+        5,
+        "Excellent.",
+    )
 
 
 def test_load_books_uses_empty_collection_when_data_file_is_missing() -> None:
@@ -182,6 +273,30 @@ def test_set_rating_and_review_rejects_non_string_review() -> None:
         collection.set_rating_and_review("Dune", None, 123)  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("rating", [1, 5])
+def test_set_rating_and_review_accepts_rating_boundaries(rating: int) -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    assert collection.set_rating_and_review("Dune", rating, "")
+
+    book = collection.find_book_by_title("Dune")
+    assert book is not None
+    assert (book.rating, book.review) == (rating, "")
+
+
+def test_set_rating_and_review_clears_rating_and_review_with_none() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+    collection.set_rating_and_review("Dune", 5, "Excellent.")
+
+    assert collection.set_rating_and_review("Dune", None, None)
+
+    book = collection.find_book_by_title("Dune")
+    assert book is not None
+    assert (book.rating, book.review) == (None, None)
+
+
 def test_set_rating_and_review_returns_false_for_unknown_title() -> None:
     collection = BookCollection()
 
@@ -207,6 +322,48 @@ def test_set_rating_and_review_updates_the_selected_duplicate_title() -> None:
 
     assert first_book.review is None
     assert second_book.review == "Selected review."
+
+
+def test_set_rating_and_review_by_title_updates_first_duplicate_title() -> None:
+    collection = BookCollection()
+    first_book = collection.add_book("Dune", "Frank Herbert", 1965)
+    second_book = collection.add_book("Dune", "Another Author", 2020)
+
+    assert collection.set_rating_and_review("DUNE", 4, "First match.")
+
+    assert first_book.review == "First match."
+    assert second_book.review is None
+
+
+def test_find_book_by_title_matches_without_case_sensitivity() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+
+    book = collection.find_book_by_title("dUnE")
+
+    assert book is not None
+    assert book.author == "Frank Herbert"
+
+
+def test_find_book_by_title_returns_none_for_no_match() -> None:
+    collection = BookCollection()
+
+    assert collection.find_book_by_title("Unknown") is None
+
+
+def test_find_book_by_id_returns_matching_book() -> None:
+    collection = BookCollection()
+    added_book = collection.add_book("Dune", "Frank Herbert", 1965)
+
+    result = collection.find_book_by_id(added_book.id)
+
+    assert result is added_book
+
+
+def test_find_book_by_id_returns_none_for_no_match() -> None:
+    collection = BookCollection()
+
+    assert collection.find_book_by_id("unknown-id") is None
 
 
 def test_mark_book_as_read():
@@ -281,3 +438,15 @@ def test_remove_book_matches_title_without_case_sensitivity_and_persists() -> No
 
     reloaded_collection = BookCollection()
     assert reloaded_collection.list_books() == []
+
+
+def test_remove_book_removes_first_duplicate_title() -> None:
+    collection = BookCollection()
+    collection.add_book("Dune", "Frank Herbert", 1965)
+    second_book = collection.add_book("Dune", "Another Author", 2020)
+
+    assert collection.remove_book("Dune")
+
+    remaining_books = collection.list_books()
+    assert len(remaining_books) == 1
+    assert remaining_books[0].id == second_book.id

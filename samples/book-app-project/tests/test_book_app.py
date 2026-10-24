@@ -1,6 +1,7 @@
 import os
 import sys
 from contextlib import redirect_stdout
+from datetime import date
 from io import StringIO
 from pathlib import Path
 
@@ -43,6 +44,25 @@ def test_stat_command_displays_collection_statistics(
     assert "Unread: 1" in output.getvalue()
     assert "Oldest book: Book A by Author A (1900)" in output.getvalue()
     assert "Newest book: Book C by Author C (2000)" in output.getvalue()
+
+
+@pytest.mark.parametrize(
+    "year_input",
+    ["not-a-year", "", "0", "-1", str(date.today().year + 1)],
+)
+def test_add_command_rejects_invalid_publication_year(
+    monkeypatch: pytest.MonkeyPatch,
+    collection: BookCollection,
+    capsys: pytest.CaptureFixture[str],
+    year_input: str,
+) -> None:
+    answers = iter(["Dune", "Frank Herbert", year_input])
+    monkeypatch.setattr("builtins.input", lambda _prompt: next(answers))
+
+    book_app.handle_add(collection)
+
+    assert collection.list_books() == []
+    assert "Error:" in capsys.readouterr().out
 
 
 def test_stat_command_displays_empty_collection(

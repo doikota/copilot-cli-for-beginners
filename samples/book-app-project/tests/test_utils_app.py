@@ -1,6 +1,7 @@
 import os
 import sys
 from contextlib import redirect_stdout
+from datetime import date
 from io import StringIO
 from pathlib import Path
 
@@ -62,6 +63,29 @@ def test_main_handles_invalid_choice_and_empty_book_details(
     displayed = output.getvalue()
     assert "Invalid choice. Please choose an option from 1 to 5." in displayed
     assert "Title and author are required." in displayed
+    assert not (tmp_path / "data.json").exists()
+
+
+@pytest.mark.parametrize(
+    "year_input",
+    ["not-a-year", "0", "-1", str(date.today().year + 1)],
+)
+def test_main_rejects_invalid_publication_year(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    year_input: str,
+) -> None:
+    monkeypatch.setattr(books, "DATA_FILE", tmp_path / "data.json")
+    answers = iter(["1", "Dune", "Frank Herbert", year_input, "5"])
+    monkeypatch.setattr("builtins.input", lambda _prompt: next(answers))
+    output = StringIO()
+
+    with redirect_stdout(output):
+        utils_app.main()
+
+    displayed = output.getvalue()
+    assert "Invalid book details:" in displayed
+    assert "Book added successfully." not in displayed
     assert not (tmp_path / "data.json").exists()
 
 

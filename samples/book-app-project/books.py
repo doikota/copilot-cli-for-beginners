@@ -1,10 +1,25 @@
 import json
 from dataclasses import dataclass, asdict, field, replace
+from datetime import date
 from pathlib import Path
 from typing import List, Optional
 from uuid import uuid4
 
 DATA_FILE = Path(__file__).resolve().parent / "data.json"
+
+
+def _validate_publication_year(year: object) -> int:
+    """出版年が1年から現在年までの整数であることを検証します。"""
+    current_year = date.today().year
+    if (
+        not isinstance(year, int)
+        or isinstance(year, bool)
+        or not 1 <= year <= current_year
+    ):
+        raise ValueError(
+            f"Publication year must be an integer from 1 to {current_year}."
+        )
+    return year
 
 
 @dataclass
@@ -33,6 +48,9 @@ class Book:
     rating: Optional[int] = None
     review: Optional[str] = None
     id: str = field(default_factory=lambda: str(uuid4()))
+
+    def __post_init__(self) -> None:
+        _validate_publication_year(self.year)
 
 
 def get_book_statistics(books: List[Book]) -> dict[str, int | Book | None]:
@@ -116,8 +134,12 @@ def _book_from_data(data: object, index: int) -> Book:
         raise ValueError(f"Book at index {index} has a non-string title.")
     if not isinstance(author, str):
         raise ValueError(f"Book at index {index} has a non-string author.")
-    if not isinstance(year, int) or isinstance(year, bool):
-        raise ValueError(f"Book at index {index} has a non-integer year.")
+    try:
+        _validate_publication_year(year)
+    except ValueError as error:
+        raise ValueError(
+            f"Book at index {index} has an invalid year: {error}"
+        ) from error
     if not isinstance(read, bool):
         raise ValueError(f"Book at index {index} has a non-boolean read status.")
     if rating is not None and (
@@ -219,6 +241,7 @@ class BookCollection:
             Book: 自動生成されたIDを含む、新しく作成された書籍。
 
         発生する例外:
+            ValueError: 出版年が1から現在年までの整数でない場合。
             OSError: 更新したコレクションを保存できない場合。
 
         使用例:

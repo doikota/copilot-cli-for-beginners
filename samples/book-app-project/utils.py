@@ -1,4 +1,7 @@
-def print_menu():
+from books import Book
+
+
+def print_menu() -> None:
     print("\n📚 Book Collection App")
     print("1. Add a book")
     print("2. List books")
@@ -22,21 +25,20 @@ def get_user_choice() -> str:
         print("Invalid choice. Please choose an option from 1 to 5.")
 
 
-def get_book_details():
+def get_book_details() -> tuple[str, str, int]:
     title = input("Enter book title: ").strip()
     author = input("Enter author: ").strip()
 
     year_input = input("Enter publication year: ").strip()
     try:
         year = int(year_input)
-    except ValueError:
-        print("Invalid year. Defaulting to 0.")
-        year = 0
+    except ValueError as error:
+        raise ValueError("Publication year must be an integer.") from error
 
     return title, author, year
 
 
-def print_books(books):
+def print_books(books: list[Book]) -> None:
     if not books:
         print("No books in your collection.")
         return

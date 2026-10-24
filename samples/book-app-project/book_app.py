@@ -37,11 +37,16 @@ def handle_add(collection: BookCollection) -> None:
     year_str = input("Year: ").strip()
 
     try:
-        year = int(year_str) if year_str else 0
+        year = int(year_str)
+    except ValueError:
+        print("\nError: Publication year must be an integer.\n")
+        return
+
+    try:
         collection.add_book(title, author, year)
         print("\nBook added successfully.\n")
-    except ValueError as e:
-        print(f"\nError: {e}\n")
+    except ValueError as error:
+        print(f"\nError: {error}\n")
 
 
 def handle_remove(collection: BookCollection) -> None:
