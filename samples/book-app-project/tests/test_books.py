@@ -246,6 +246,42 @@ def test_load_books_preserves_optional_fields_and_id() -> None:
     )
 
 
+def test_save_books_preserves_existing_file_when_serialization_fails() -> None:
+    collection = BookCollection()
+    collection.books.append(Book("Dune", "Frank Herbert", 1965))
+    collection.books[0].rating = object()  # type: ignore[assignment]
+    existing_data = "existing file contents"
+    Path(books.DATA_FILE).write_text(existing_data, encoding="utf-8")
+
+    with pytest.raises(TypeError):
+        collection.save_books()
+
+    assert Path(books.DATA_FILE).read_text(encoding="utf-8") == existing_data
+
+
+def test_save_books_preserves_existing_file_when_replace_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    collection = BookCollection()
+    collection.books.append(Book("Dune", "Frank Herbert", 1965))
+    data_file = Path(books.DATA_FILE)
+    existing_data = "existing file contents"
+    data_file.write_text(existing_data, encoding="utf-8")
+
+    def fail_replace(
+        source: os.PathLike[str] | str, destination: os.PathLike[str] | str
+    ) -> None:
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(books.os, "replace", fail_replace)
+
+    with pytest.raises(OSError, match="replace failed"):
+        collection.save_books()
+
+    assert data_file.read_text(encoding="utf-8") == existing_data
+    assert list(data_file.parent.glob(".data.json.*.tmp")) == []
+
+
 def test_load_books_uses_empty_collection_when_data_file_is_missing() -> None:
     Path(books.DATA_FILE).unlink()
 

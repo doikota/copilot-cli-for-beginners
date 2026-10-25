@@ -1,4 +1,28 @@
+"""書籍データのモデル、検索、集計、およびJSONファイルへの保存機能を提供します。
+
+``Book``で書籍を表し、``BookCollection``で一覧の読み込みや追加、検索、更新、
+削除を行います。書籍の追加や更新などの変更は、同じフォルダーにある
+``data.json``へ自動的に保存されます。
+
+使用例:
+    >>> book = Book("Dune", "Frank Herbert", 1965, read=True)
+    >>> statistics = get_book_statistics([book])
+    >>> (statistics["total"], statistics["read"])
+    (1, 1)
+
+注意点:
+    ``BookCollection``は作成時に``data.json``を読み込みます。ファイルがない場合は
+    空のコレクションとして開始しますが、JSONや書籍データが無効な場合は
+    ``ValueError``が発生します。ファイルの読み書きに失敗した場合は``OSError``が
+    呼び出し元に伝わります。
+
+    ``Book``の直接作成時に検証されるのは、タイトル、著者名、出版年です。
+    評価やレビューを設定する場合は``BookCollection``の設定メソッドを使ってください。
+"""
+
 import json
+import os
+import tempfile
 from dataclasses import dataclass, asdict, field, replace
 from datetime import date
 from pathlib import Path
@@ -23,6 +47,7 @@ def _validate_publication_year(year: object) -> int:
 
 
 def _validate_book_text(value: object, field_name: str) -> None:
+    """書籍の文字列フィールドが空でない文字列であることを検証します。"""
     if not isinstance(value, str):
         raise ValueError(f"{field_name} must be a string.")
     if not value.strip():
@@ -36,11 +61,16 @@ class Book:
     属性:
         title: 書籍のタイトル。
         author: 著者名。
-        year: 出版年。
-        read: 読了済みかどうか。
-        rating: 1から5までの任意の評価。
-        review: 任意のレビュー文。
-        id: 一意の識別子。省略時には自動生成されます。
+        year: 出版年。1年から現在の年までの整数です。
+        read: 読了済みかどうか。初期値は``False``です。
+        rating: 1から5までの任意の評価。初期値は``None``です。
+        review: 任意のレビュー文。初期値は``None``です。
+        id: 一意の識別子。省略時にはUUIDが自動生成されます。
+
+    注意点:
+        直接作成するときに検証されるのは、空でないタイトルと著者名、および出版年
+        です。``read``、``rating``、``review``は型ヒント上の型を指定していますが、
+        直接作成または代入するときには値の検証を行いません。
 
     使用例:
         >>> book = Book("Dune", "Frank Herbert", 1965)
@@ -57,6 +87,7 @@ class Book:
     id: str = field(default_factory=lambda: str(uuid4()))
 
     def __post_init__(self) -> None:
+        """タイトル、著者名、出版年を検証します。"""
         _validate_book_text(self.title, "Title")
         _validate_book_text(self.author, "Author")
         _validate_publication_year(self.year)
@@ -176,6 +207,20 @@ def _book_from_data(data: object, index: int) -> Book:
 class BookCollection:
     """モジュールのJSONデータファイルに保存された書籍を読み込み、管理します。
 
+    引数:
+        なし。データファイルにはモジュール定数``DATA_FILE``を使います。
+
+    主な操作:
+        ``add_book(title, author, year)``は書籍を追加して保存し、新しい``Book``を返します。
+        ``list_books()``は書籍のコピーのリストを返します。
+        ``find_book_by_title(title)``と``find_book_by_id(book_id)``は、一致した書籍か
+        ``None``を返します。更新・削除のメソッドは成功時に``True``、対象がない場合に
+        ``False``を返します。
+
+    注意点:
+        変更時は``data.json``への保存を試みます。保存に失敗すると例外が発生し、
+        メモリ上の変更は元に戻りません。操作にはファイルパスを指定できません。
+
     使用例:
         >>> collection = BookCollection()
         >>> isinstance(collection.list_books(), list)
@@ -225,18 +270,43 @@ class BookCollection:
             raise ValueError(f"Cannot load books from data.json: {error}") from error
 
     def save_books(self) -> None:
-        """現在のコレクションをJSON形式で``DATA_FILE``に書き込みます。
+        """現在のコレクションをJSON形式で``DATA_FILE``に原子的に保存します。
+
+        同じディレクトリ内の一時ファイルに書き込んでから置き換えるため、
+        保存に失敗した場合も既存のデータファイルはそのまま保たれます。
 
         発生する例外:
-            OSError: ファイルを開けない場合、または書き込めない場合。
+            OSError: 一時ファイルを作成・書き込みできない場合、または
+                ``DATA_FILE``を置き換えられない場合。
             TypeError: コレクション内にJSONへ変換できない値が含まれている場合。
 
         使用例:
             >>> collection = BookCollection()
             >>> collection.save_books()
         """
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump([asdict(b) for b in self.books], f, indent=2, ensure_ascii=False)
+        serialized_books = json.dumps(
+            [asdict(book) for book in self.books], indent=2, ensure_ascii=False
+        )
+        data_file = Path(DATA_FILE)
+        temporary_file: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=data_file.parent,
+                prefix=f".{data_file.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as file:
+                temporary_file = Path(file.name)
+                file.write(serialized_books)
+            os.replace(temporary_file, data_file)
+        finally:
+            if temporary_file is not None:
+                try:
+                    temporary_file.unlink()
+                except FileNotFoundError:
+                    pass
 
     def add_book(self, title: str, author: str, year: int) -> Book:
         """書籍をコレクションに追加し、変更をファイルに保存します。
@@ -250,7 +320,8 @@ class BookCollection:
             Book: 自動生成されたIDを含む、新しく作成された書籍。
 
         発生する例外:
-            ValueError: 出版年が1から現在年までの整数でない場合。
+            ValueError: タイトルまたは著者名が文字列でないか空の場合、または
+                出版年が1から現在年までの整数でない場合。
             OSError: 更新したコレクションを保存できない場合。
 
         使用例:

@@ -1,70 +1,70 @@
-# Copilot Instructions
+# Copilotへの指示
 
-These instructions guide GitHub Copilot when working in this repository.
+このリポジトリで作業する際は、以下の指示に従ってください。
 
-## Project Context
+## プロジェクトの概要
 
-This is a **beginner-friendly educational course** teaching GitHub Copilot CLI. The repo contains Markdown chapters (00–07), Python/C#/JavaScript sample apps, and supporting assets (images, demo GIFs, glossary). It is **not** a software product — it is technical courseware.
+このリポジトリは、GitHub Copilot CLIを学ぶ初心者向けのコースです。Markdown形式の各章（00～07）、Python/C#/JavaScriptのサンプルアプリ、画像やデモGIF、用語集などの補助資料で構成されています。ソフトウェア製品ではなく、技術学習用の教材です。
 
-## Writing Conventions
+## 執筆規則
 
-- **Audience**: Beginners with no AI/ML experience. Explain every technical term on first use.
-- **Tone**: Friendly, encouraging, practical. Avoid jargon without explanation.
-- **Examples**: All code blocks and `copilot` commands must be copy-paste ready. Test them mentally before including.
-- **Naming**: Use kebab-case for session names, file names, and identifiers (e.g., `book-app-review`, not `book app review`).
-- **Command syntax**: Standardize flag format — use `--flag=value` consistently when a value is required, `--flag` when boolean.
-- **Precision**: Don't over-specify tool behavior that may vary across shells or OS. Describe what the user will see, not implementation details.
-- **Fallbacks**: When referencing tool version requirements (e.g., `gh` CLI version), always include upgrade instructions or a manual alternative.
+- **対象読者**: AI/MLの知識がない初心者です。技術用語は初めて使うときに説明してください。
+- **文体**: 親しみやすく、読者を励ます、実践的な文体にしてください。説明なしに専門用語を使わないでください。
+- **例**: コードブロックと`copilot`コマンドは、すべてコピーしてすぐに実行できる形にしてください。掲載前に、内容が正しいか慎重に確認してください。
+- **命名**: セッション名、ファイル名、識別子にはkebab-case（単語をハイフンでつなぐ形式）を使ってください（例: `book-app-review`。`book app review`は使わないでください）。
+- **コマンド構文**: 値が必要なフラグは一貫して`--flag=value`の形式にし、真偽値を指定するフラグは`--flag`の形式にしてください。
+- **正確さ**: シェルやOSによって異なる可能性があるツールの動作を、必要以上に断定しないでください。実装の詳細ではなく、ユーザーに何が表示されるかを説明してください。
+- **代替手段**: `gh` CLIのバージョンなど、ツールのバージョン要件に触れる場合は、アップグレード方法か、アップグレードできない場合の手動での代替手段を必ず示してください。
 
-## Content Conventions (from PR review patterns)
+## コンテンツ規則（PRレビューでの指摘を反映）
 
-These patterns were mined from actual PR review feedback and represent recurring maintainer expectations:
+以下の規則は、実際のPRレビューで繰り返し指摘された内容に基づいています。
 
-- When showing multi-step workflows, ensure all prerequisite steps are included (e.g., `git add` before `git diff --staged`).
-- When introducing a concept with an example, use consistent naming throughout the section — don't mix kebab-case and quoted names.
-- When describing a command's behavior, match the level of specificity in the official release notes — don't state behavior that may differ across environments.
-- If a feature requires a minimum tool version, mention the version AND provide a fallback path for users who can't upgrade yet.
+- 複数の手順を示す場合は、前提となる手順も含めてください（例: `git diff --staged`の前に`git add`を実行します）。
+- 概念を例とともに紹介する場合は、セクション全体で一貫した名前を使ってください。kebab-caseと引用符付きの名前を混在させないでください。
+- コマンドの動作を説明する際は、公式リリースノートと同程度の具体性にしてください。環境によって異なる可能性がある動作を断定しないでください。
+- 機能に最低バージョン要件がある場合は、そのバージョンと、アップグレードできないユーザー向けの代替手段を示してください。
 
-## Sample Code Conventions
+## サンプルコードの規則
 
-- **Primary sample**: Always use `samples/book-app-project/` (Python) for examples in chapters.
-- **Test framework**: pytest — test files go in `samples/book-app-project/tests/` and follow `test_*.py` naming.
-- **Python version**: 3.10+ (per `samples/book-app-project/pyproject.toml`).
-- **Intentional bugs**: Files in `samples/book-app-buggy/` and `samples/buggy-code/` contain **deliberate bugs** for exercises. Never fix them.
+- **主なサンプル**: 章で使う例には、常にPython版の`samples/book-app-project/`を使ってください。
+- **テストフレームワーク**: pytestを使います。テストファイルは`samples/book-app-project/tests/`に置き、ファイル名は`test_*.py`にしてください。
+- **Pythonのバージョン**: 3.10以降（`samples/book-app-project/pyproject.toml`に記載）。
+- **意図的に含めたバグ**: `samples/book-app-buggy/`と`samples/buggy-code/`のファイルには、演習用の意図的なバグが含まれています。修正しないでください。
 
-## Chapter Structure
+## 章の構成
 
-Every chapter (00–07) follows the same pattern in its `README.md`:
+各章（00～07）の`README.md`は、次の構成にしてください。
 
-1. Real-World Analogy
-2. Core Concepts
-3. Hands-On Examples
-4. Assignment
-5. What's Next
+1. 身近な例え
+2. 基本概念
+3. 実践例
+4. 課題
+5. 次のステップ
 
-Do not deviate from this structure when editing or adding chapter content.
+章の内容を編集または追加する際は、この構成を変更しないでください。
 
-## Markdown Formatting
+## Markdownの書式
 
-- Use standard GitHub-Flavored Markdown.
-- Images go in the repo-root `assets/` directory.
-- Use relative links for cross-chapter references (e.g., `../03-development-workflows/README.md`).
-- Emoji usage is encouraged for section headers (matching existing style).
+- 標準的なGitHub Flavored Markdownを使ってください。
+- 画像はリポジトリのルートにある`assets/`ディレクトリに置いてください。
+- 章をまたぐ参照には相対リンクを使ってください（例: `../03-development-workflows/README.md`）。
+- 既存のスタイルに合わせ、セクション見出しには絵文字を使ってもかまいません。
 
-## Maintenance Matrix
+## メンテナンス一覧
 
-| Change Made | Files to Update |
+| 変更内容 | 更新するファイル |
 |---|---|
-| New chapter added | `README.md` (course table), `AGENTS.md` (structure table), `assets/learning-path.png` |
-| Chapter content updated | The chapter's `README.md`, verify cross-references in adjacent chapters |
-| New sample app variant added | `AGENTS.md` (structure table), `samples/` directory, relevant chapter references |
-| Sample app code changed | `samples/book-app-project/tests/` (update/add tests), chapters referencing that code |
-| Bug intentionally added to buggy samples | `samples/book-app-buggy/` or `samples/buggy-code/` only — do NOT update tests |
-| New skill added | `.github/skills/{skill-name}/SKILL.md`, `samples/skills/` (example copy), Chapter 05 |
-| New agent template added | `samples/agents/`, Chapter 04 |
-| New MCP config added | `samples/mcp-configs/`, Chapter 06 |
-| Glossary term introduced | `GLOSSARY.md` — add definition in alphabetical order |
-| npm scripts changed | `package.json`, `AGENTS.md` (build section) |
-| Devcontainer updated | `.devcontainer/devcontainer.json`, Chapter 00 (setup instructions) |
-| Image or banner changed | `assets/` directory, any README referencing the image |
-| Copilot CLI version requirements change | Chapter 00, Chapter 01, `.devcontainer/devcontainer.json` |
+| 新しい章を追加 | `README.md`（コース一覧）、`AGENTS.md`（構成一覧）、`assets/learning-path.png` |
+| 章の内容を更新 | 該当する章の`README.md`。隣接する章からの相互参照も確認 |
+| サンプルアプリの新しいバリエーションを追加 | `AGENTS.md`（構成一覧）、`samples/`ディレクトリ、関連する章の参照 |
+| サンプルアプリのコードを変更 | `samples/book-app-project/tests/`（テストの更新または追加）、そのコードを参照する章 |
+| バグ演習用サンプルに意図的なバグを追加 | `samples/book-app-buggy/`または`samples/buggy-code/`のみ。テストは更新しないでください |
+| 新しいスキルを追加 | `.github/skills/{skill-name}/SKILL.md`、`samples/skills/`（サンプルのコピー）、第05章 |
+| 新しいエージェントテンプレートを追加 | `samples/agents/`、第04章 |
+| 新しいMCP設定を追加 | `samples/mcp-configs/`、第06章 |
+| 用語集に新しい用語を追加 | `GLOSSARY.md`（アルファベット順で定義を追加） |
+| npmスクリプトを変更 | `package.json`、`AGENTS.md`（ビルドの項目） |
+| Dev Containerを更新 | `.devcontainer/devcontainer.json`、第00章（セットアップ手順） |
+| 画像またはバナーを変更 | `assets/`ディレクトリ、その画像を参照するすべてのREADME |
+| Copilot CLIのバージョン要件を変更 | 第00章、第01章、`.devcontainer/devcontainer.json` |
