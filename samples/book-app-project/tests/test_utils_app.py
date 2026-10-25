@@ -62,7 +62,22 @@ def test_main_handles_invalid_choice_and_empty_book_details(
 
     displayed = output.getvalue()
     assert "Invalid choice. Please choose an option from 1 to 5." in displayed
-    assert "Title and author are required." in displayed
+    assert "Invalid book details: Title must not be empty." in displayed
+    assert not (tmp_path / "data.json").exists()
+
+
+def test_main_rejects_empty_author(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(books, "DATA_FILE", tmp_path / "data.json")
+    answers = iter(["1", "Dune", "", "1965", "5"])
+    monkeypatch.setattr("builtins.input", lambda _prompt: next(answers))
+    output = StringIO()
+
+    with redirect_stdout(output):
+        utils_app.main()
+
+    assert "Invalid book details: Author must not be empty." in output.getvalue()
     assert not (tmp_path / "data.json").exists()
 
 

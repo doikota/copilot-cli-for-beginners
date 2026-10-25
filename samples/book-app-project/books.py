@@ -22,6 +22,13 @@ def _validate_publication_year(year: object) -> int:
     return year
 
 
+def _validate_book_text(value: object, field_name: str) -> None:
+    if not isinstance(value, str):
+        raise ValueError(f"{field_name} must be a string.")
+    if not value.strip():
+        raise ValueError(f"{field_name} must not be empty.")
+
+
 @dataclass
 class Book:
     """書籍コレクション内の1冊を表します。
@@ -50,6 +57,8 @@ class Book:
     id: str = field(default_factory=lambda: str(uuid4()))
 
     def __post_init__(self) -> None:
+        _validate_book_text(self.title, "Title")
+        _validate_book_text(self.author, "Author")
         _validate_publication_year(self.year)
 
 

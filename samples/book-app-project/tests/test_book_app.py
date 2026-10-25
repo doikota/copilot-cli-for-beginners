@@ -65,6 +65,30 @@ def test_add_command_rejects_invalid_publication_year(
     assert "Error:" in capsys.readouterr().out
 
 
+@pytest.mark.parametrize(
+    "title,author,error_message",
+    [
+        ("", "Frank Herbert", "Title must not be empty."),
+        ("Dune", "", "Author must not be empty."),
+    ],
+)
+def test_add_command_rejects_empty_title_or_author(
+    monkeypatch: pytest.MonkeyPatch,
+    collection: BookCollection,
+    capsys: pytest.CaptureFixture[str],
+    title: str,
+    author: str,
+    error_message: str,
+) -> None:
+    answers = iter([title, author, "1965"])
+    monkeypatch.setattr("builtins.input", lambda _prompt: next(answers))
+
+    book_app.handle_add(collection)
+
+    assert collection.list_books() == []
+    assert error_message in capsys.readouterr().out
+
+
 def test_stat_command_displays_empty_collection(
     monkeypatch: pytest.MonkeyPatch, collection: BookCollection
 ) -> None:

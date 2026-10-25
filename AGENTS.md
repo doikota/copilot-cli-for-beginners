@@ -1,38 +1,38 @@
 # AGENTS.md
 
-Beginner-friendly course teaching GitHub Copilot CLI. Educational content, not software.
+GitHub Copilot CLIを学ぶ、初心者向けのコースです。ソフトウェアではなく、学習用コンテンツです。
 
 ## Structure
 
-| Path | Purpose |
+| パス | 内容 |
 |------|---------|
-| `00-07/` | Chapters: analogy → concepts → hands-on → assignment → next |
-| `samples/book-app-project/` | **Primary sample**: Python CLI book collection app used throughout all chapters |
-| `samples/book-app-project-cs/` | C# version of the book collection app |
-| `samples/book-app-project-js/` | JavaScript version of the book collection app |
-| `samples/book-app-buggy/` | **Intentional bugs** for debugging exercises (Ch 03) |
-| `samples/agents/` | Agent template examples (python-reviewer, pytest-helper, hello-world) |
-| `samples/skills/` | Skill template examples (code-checklist, pytest-gen, commit-message, hello-world) |
-| `samples/mcp-configs/` | MCP server configuration examples |
-| `samples/buggy-code/` | **Optional extra**: Security-focused buggy code (JS and Python) |
-| `samples/src/` | **Optional extra**: Legacy JS/React samples from earlier course version |
-| `appendices/` | Supplementary reference material |
+| `00-07/` | 各章：たとえ話 → 概念 → 実践 → 課題 → 次のステップ |
+| `samples/book-app-project/` | **メインのサンプル**：全章で使用する、Python製のCLI書籍コレクションアプリ |
+| `samples/book-app-project-cs/` | 書籍コレクションアプリのC#版 |
+| `samples/book-app-project-js/` | 書籍コレクションアプリのJavaScript版 |
+| `samples/book-app-buggy/` | デバッグ演習用の**意図的なバグ**（第03章） |
+| `samples/agents/` | Agentテンプレートの例（python-reviewer、pytest-helper、hello-world） |
+| `samples/skills/` | Skillテンプレートの例（code-checklist、pytest-gen、commit-message、hello-world） |
+| `samples/mcp-configs/` | MCPサーバー設定の例 |
+| `samples/buggy-code/` | **追加の任意コンテンツ**：セキュリティに関するバグを含むコード（JavaScriptとPython） |
+| `samples/src/` | **追加の任意コンテンツ**：以前のコースで使用していた旧版のJS/Reactサンプル |
+| `appendices/` | 補足資料 |
 
-## Do
+## 守ること
 
-- Keep explanations beginner-friendly; explain AI/ML jargon when used
-- Ensure bash examples are copy-paste ready
-- Tone: friendly, encouraging, practical
-- Use `samples/book-app-project/` paths in all primary examples
-- Use Python/pytest context for code examples
+- 初心者にもわかりやすい説明にし、AI/MLの専門用語を使う場合は説明を加える
+- bashの例はコピー＆ペーストですぐに実行できるようにする
+- 親しみやすく、前向きで、実践的な語り口にする
+- 主要な例ではすべて `samples/book-app-project/` のパスを使う
+- コード例ではPython/pytestを使う
 
-## Don't
+## してはいけないこと
 
-- Fix bugs in `samples/book-app-buggy/` or `samples/buggy-code/` — they're intentional
-- Add chapters without updating README.md course table
-- Assume readers know AI/ML terminology
+- `samples/book-app-buggy/` や `samples/buggy-code/` のバグを修正しない（演習用に意図的に含まれています）
+- README.mdのコース一覧を更新せずに章を追加しない
+- 読者がAI/MLの専門用語を知っている前提で書かない
 
-## Build
+## ビルド
 
 ```bash
 npm install && npm run release

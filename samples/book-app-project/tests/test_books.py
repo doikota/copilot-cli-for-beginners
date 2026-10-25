@@ -47,7 +47,7 @@ def test_get_book_statistics_empty_list() -> None:
     }
 
 
-def test_add_book():
+def test_add_book() -> None:
     collection = BookCollection()
     initial_count = len(collection.books)
     collection.add_book("1984", "George Orwell", 1949)
@@ -57,6 +57,27 @@ def test_add_book():
     assert book.author == "George Orwell"
     assert book.year == 1949
     assert book.read is False
+
+
+@pytest.mark.parametrize(
+    "title,author,error_message",
+    [
+        ("", "Author", "Title must not be empty."),
+        ("  ", "Author", "Title must not be empty."),
+        ("Book", "", "Author must not be empty."),
+        ("Book", "  ", "Author must not be empty."),
+    ],
+)
+def test_add_book_rejects_empty_title_or_author(
+    title: str, author: str, error_message: str
+) -> None:
+    collection = BookCollection()
+
+    with pytest.raises(ValueError, match=error_message):
+        collection.add_book(title, author, 2000)
+
+    assert collection.list_books() == []
+    assert Path(books.DATA_FILE).read_text(encoding="utf-8") == "[]"
 
 
 @pytest.mark.parametrize("year", [1, date.today().year])
@@ -163,6 +184,8 @@ def test_save_and_load_japanese_book_names() -> None:
         '[{"title": "Book", "year": 2000}]',
         '[{"title": 1, "author": "Author", "year": 2000}]',
         '[{"title": "Book", "author": 1, "year": 2000}]',
+        '[{"title": "", "author": "Author", "year": 2000}]',
+        '[{"title": "Book", "author": "  ", "year": 2000}]',
         '[{"title": "Book", "author": "Author", "year": 2000, "rating": true}]',
         '[{"title": "Bad review", "author": "Author", "year": 2000, "review": 5}]',
         '[{"title": "Book", "author": "Author", "year": 2000, "id": " "}]',
