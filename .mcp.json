@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "type": "local",
+      "command": "mcp-server-filesystem",
+      "args": [
+        "${workspaceFolder}"
+      ],
+      "tools": ["*"]
+    }
+  }
+}
